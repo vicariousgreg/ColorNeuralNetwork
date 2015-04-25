@@ -29,9 +29,10 @@ public class Neuron {
     * @param weights initial weights
     * @param bias initial bias
     */
-   public Neuron(double[] weights, double bias) {
+   private Neuron(double[] weights, double bias) {
       this.numInputs = weights.length;
-      this.weights = weights;
+      this.weights = new double[weights.length];
+      System.arraycopy(weights, 0, this.weights, 0, weights.length);
       this.bias = bias;
    }
 
@@ -53,9 +54,9 @@ public class Neuron {
     * @return output signal
     */
    public double fire(double[] inputs) {
-      System.out.println("        NEURON: ");
-      System.out.println("          WEIGHTS: " + Main.arrayToString(weights));
-      System.out.println("          BIAS: " + bias);
+      //System.out.println("        NEURON: ");
+      //System.out.println("          WEIGHTS: " + Main.arrayToString(weights));
+      //System.out.println("          BIAS: " + bias);
 
       // Ensure input is of proper length.
       if (inputs.length == numInputs) {
@@ -69,7 +70,7 @@ public class Neuron {
 
          // Calculate signal output.
          double result = Sigmoid.calculate(x);
-         System.out.println("          OUTPUT: " + result);
+         //System.out.println("          OUTPUT: " + result);
          return result;
       }
 
@@ -91,5 +92,46 @@ public class Neuron {
     */
    public double getBias() {
       return bias;
+   }
+
+   /**
+    * Clones this neuron.
+    * @return clone
+    */
+   public Neuron clone() {
+      return new Neuron(this.weights, this.bias);
+   }
+
+   /**
+    * Crosses over two neurons to create a child neuron.
+    * @param n1 first neuron
+    * @param n2 second neuron
+    * @return child neuron
+    */
+   public static Neuron crossover(Neuron n1, Neuron n2)  {
+      Random rand = new Random();
+      double[] newWeights = new double[n1.numInputs];
+
+      for (int i = 0; i < n1.weights.length; ++i) {
+         if (rand.nextDouble() < 0.5) {
+            newWeights[i] = n1.weights[i];
+         } else {
+            newWeights[i] = n2.weights[i];
+         }
+      }
+
+      double newBias = n1.bias;
+      if (rand.nextDouble() < 0.5) newBias = n2.bias;
+
+      return new Neuron(newWeights, newBias);
+   }
+
+   /**
+    * Prints the neuron's weights and bias.
+    */
+   public void print() {
+      System.out.println("        NEURON: ");
+      System.out.println("          WEIGHTS: " + Main.arrayToString(weights));
+      System.out.println("          BIAS: " + bias);
    }
 }

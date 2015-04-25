@@ -1,4 +1,5 @@
 import java.util.ArrayList;
+import java.util.Random;
 
 /**
  * Represents a neural network.
@@ -28,18 +29,26 @@ public class Network {
    }
 
    /**
+    * Explicit constructor.
+    * @param layers neuron layers
+    */
+   private Network(ArrayList<Neuron[]> layers) {
+      this.layers = layers;
+   }
+
+   /**
     * Fires the neural network.
     * @param input input signals
     * @return output signals
     */
    public double[] fire(double[] input) {
-      System.out.println("  Firing network!");
-      System.out.println("    Input: " + Main.arrayToString(input));
+      //System.out.println("  Firing network!");
+      //System.out.println("    Input: " + Main.arrayToString(input));
 
       double[] output = null;
       // Thread input through network layers.
       for (Neuron[] layer : layers) {
-         System.out.println("      LAYER");
+         //System.out.println("      LAYER");
          output = new double[layer.length];
 
          // Process input and catch output.
@@ -51,7 +60,7 @@ public class Network {
          input = output;
       }
 
-      System.out.println("    Output: " + Main.arrayToString(output));
+      //System.out.println("    Output: " + Main.arrayToString(output));
       return output;
    }
 
@@ -65,8 +74,8 @@ public class Network {
 
       // Run each tests and sum up total error.
       for (TestCase test : tests) {
-         System.out.println("Running test!");
-         System.out.println("Expecting: " + Main.arrayToString(test.outputs));
+         //System.out.println("Running test!");
+         //System.out.println("Expecting: " + Main.arrayToString(test.outputs));
          double[] output = fire(test.inputs);
          double error = 0.0;
 
@@ -81,5 +90,88 @@ public class Network {
 
       // Return the average fitness.
       return 1 - (totalError / tests.size());
+   }
+
+   /**
+    * Randomly mutates this network.
+    * @param mutationRate probability of neuron mutation
+    * @return mutated network
+    */
+   public Network mutate(double mutationRate) {
+      Network newNetwork = clone();
+      Random rand = new Random();
+
+      for (Neuron[] layer : newNetwork.layers) {
+         for (int i = 0; i < layer.length; ++i) {
+            if (rand.nextDouble() < mutationRate) {
+               System.out.println("================");
+               layer[i].randomize();
+            }
+         }
+      }
+
+      return newNetwork;
+   }
+
+   /**
+    * Crosses over two networks to create a child network.
+    * @param net1 first network
+    * @param net2 second network
+    * @return child network
+    */
+   public static Network crossover(Network net1, Network net2) {
+      Random rand = new Random();
+      ArrayList<Neuron[]> newLayers = new ArrayList<Neuron[]>();
+
+      for (int layerIndex = 0; layerIndex < net1.layers.size(); ++layerIndex) {
+         int layerSize = net1.layers.get(layerIndex).length;
+         Neuron[] layer1 = net1.layers.get(layerIndex);
+         Neuron[] layer2 = net2.layers.get(layerIndex);
+         Neuron[] newLayer = new Neuron[layerSize];
+
+         for (int neuronIndex = 0; neuronIndex < layerSize; ++neuronIndex) {
+            double factor = rand.nextDouble();
+            if (factor < 0.34) newLayer[neuronIndex] = layer1[neuronIndex].clone();
+            else if (factor > 0.67) newLayer[neuronIndex] = layer2[neuronIndex].clone();
+            else newLayer[neuronIndex] =
+               Neuron.crossover(layer1[neuronIndex], layer2[neuronIndex]);
+         }
+         newLayers.add(newLayer);
+      }
+
+      return new Network(newLayers);
+   }
+
+   /**
+    * Clones this network.
+    * @return cloned network
+    */
+   public Network clone() {
+      ArrayList<Neuron[]> newLayers = new ArrayList<Neuron[]>();
+
+      for (Neuron[] layer : layers) {
+         Neuron[] newLayer = new Neuron[layer.length];
+
+         for (int i = 0; i < layer.length; ++i) {
+            newLayer[i] = layer[i].clone();
+         }
+         newLayers.add(newLayer);
+      }
+
+      return new Network(newLayers);
+   }
+
+   /**
+    * Prints the network.
+    */
+   public void print() {
+      System.out.println("  Network");
+
+      for (Neuron[] layer : layers) {
+         System.out.println("      LAYER");
+         for (int i = 0; i < layer.length; ++i) {
+            layer[i].print();
+         }
+      }
    }
 }
