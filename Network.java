@@ -39,6 +39,7 @@ public class Network {
       double[] output = null;
       // Thread input through network layers.
       for (Neuron[] layer : layers) {
+         System.out.println("      LAYER");
          output = new double[layer.length];
 
          // Process input and catch output.

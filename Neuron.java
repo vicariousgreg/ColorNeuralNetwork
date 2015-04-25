@@ -53,14 +53,24 @@ public class Neuron {
     * @return output signal
     */
    public double fire(double[] inputs) {
+      System.out.println("        NEURON: ");
+      System.out.println("          WEIGHTS: " + Main.arrayToString(weights));
+      System.out.println("          BIAS: " + bias);
+
       // Ensure input is of proper length.
       if (inputs.length == numInputs) {
          double x = 0.0;
+
+         // Calculate sigmoid input.
          for (int i = 0; i < numInputs; ++i) {
             x += inputs[i] * weights[i];
          }
          x += bias;
-         return Sigmoid.calculate(x);
+
+         // Calculate signal output.
+         double result = Sigmoid.calculate(x);
+         System.out.println("          OUTPUT: " + result);
+         return result;
       }
 
       // If not, let's just return 0.0 for now.

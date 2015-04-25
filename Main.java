@@ -2,7 +2,7 @@ import java.util.ArrayList;
 
 public class Main {
    public static void main(String[] args) {
-      Network network = new Network(new int[] {1, 1});
+      Network network = new Network(new int[] {1, 3, 3, 1});
 
       ArrayList<TestCase> tests = new ArrayList<TestCase>();
       tests.add(new TestCase(new double[] { 0.5 }, new double[] { 0.5 }));
