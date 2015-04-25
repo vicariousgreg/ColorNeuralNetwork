@@ -22,7 +22,7 @@ public class Main {
          double answer = (x < y) ? 1.0 : 0.0;
          tests.add(new TestCase(new double[] { x, y }, new double[] { answer }));
       }
-      //Network network = new Network(new int[] {1, 1});
+      Network best = new Network(new int[] {1, 1});
       //System.out.println("Network fitness: " + network.calcFitness(tests));
 
 
@@ -36,11 +36,6 @@ public class Main {
       Collections.sort(fitnesses);
       System.out.println(fitnesses);
       */
-
-      GeneticAlgorithm gen = new GeneticAlgorithm(new int[] {2, 2, 1}, tests);
-      Network best = gen.run(1000);
-      best.print();
-      System.out.println("BEST FITNESS: " + best.calcFitness(tests));
 
       Scanner in = new Scanner(System.in);
       boolean quit = false;

@@ -54,10 +54,6 @@ public class Neuron {
     * @return output signal
     */
    public double fire(double[] inputs) {
-      //System.out.println("        NEURON: ");
-      //System.out.println("          WEIGHTS: " + Main.arrayToString(weights));
-      //System.out.println("          BIAS: " + bias);
-
       // Ensure input is of proper length.
       if (inputs.length == numInputs) {
          double x = 0.0;
@@ -100,30 +96,6 @@ public class Neuron {
     */
    public Neuron clone() {
       return new Neuron(this.weights, this.bias);
-   }
-
-   /**
-    * Crosses over two neurons to create a child neuron.
-    * @param n1 first neuron
-    * @param n2 second neuron
-    * @return child neuron
-    */
-   public static Neuron crossover(Neuron n1, Neuron n2)  {
-      Random rand = new Random();
-      double[] newWeights = new double[n1.numInputs];
-
-      for (int i = 0; i < n1.weights.length; ++i) {
-         if (rand.nextDouble() < 0.5) {
-            newWeights[i] = n1.weights[i] - 0.1 + rand.nextDouble() * 0.2;
-         } else {
-            newWeights[i] = n2.weights[i] - 0.1 + rand.nextDouble() * 0.2;
-         }
-      }
-
-      double newBias = n1.bias - 0.1 + rand.nextDouble() * 0.2;
-      if (rand.nextDouble() < 0.5) newBias = n2.bias - 0.1 + rand.nextDouble() * 0.2;
-
-      return new Neuron(newWeights, newBias);
    }
 
    /**
