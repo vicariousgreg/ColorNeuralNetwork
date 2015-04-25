@@ -66,13 +66,7 @@ public class Network {
     * @return error
     */
    public double[] calcError(TestCase test) {
-      System.out.println("Calculating error.");
-      print();
-      System.out.println("Test:");
-      System.out.println("  Input: " + Main.arrayToString(test.inputs));
-      System.out.println("  Expected output: " + Main.arrayToString(test.outputs));
       double[] output = fire(test.inputs);
-      System.out.println("  Got: " + Main.arrayToString(output));
       double[] errors = new double[output.length];
 
       // Calculate test error for each output neuron.
@@ -81,6 +75,16 @@ public class Network {
                      (1 - output[i]) *
                      (test.outputs[i] - output[i]);
       }
+
+      System.out.println("Calculating error.");
+      //print();
+      System.out.println("  Test:");
+      System.out.println("    Input: " + Main.arrayToString(test.inputs));
+      System.out.println("    Expected output: " + Main.arrayToString(test.outputs));
+      System.out.println("  Got: " + Main.arrayToString(output));
+      System.out.println("  Error: " + Main.arrayToString(errors));
+      System.out.println();
+
 
       // Return the errors.
       return errors;

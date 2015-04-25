@@ -14,24 +14,13 @@ public class Main {
          double answer = (x < y) ? 1.0 : 0.0;
          tests.add(new TestCase(new double[] { x, y }, new double[] { answer }));
       }
-      Network network = new Network(new int[] {2, 1, 1});
+      Network network = new Network(new int[] {2, 3, 1});
 
       for (int i = 0; i < 10; ++i) {
-         System.out.println("Network error: " + arrayToString(network.calcError(tests.get(i))));
+         network.calcError(tests.get(i));
       }
       System.exit(0);
 
-
-      /*
-      int[] layerCounts = new int[] {1, 3, 3, 1};
-      ArrayList<Double> fitnesses = new ArrayList<Double>();
-      for (int i = 0; i < 10; ++i) {
-         Network temp = new Network(layerCounts);
-         fitnesses.add(temp.calcFitness(tests));
-      }
-      Collections.sort(fitnesses);
-      System.out.println(fitnesses);
-      */
 
       Scanner in = new Scanner(System.in);
       boolean quit = false;
