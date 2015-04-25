@@ -6,15 +6,6 @@ import java.util.Scanner;
 public class Main {
    public static void main(String[] args) {
       ArrayList<TestCase> tests = new ArrayList<TestCase>();
-//      tests.add(new TestCase(new double[] { 0.1 }, new double[] { 0.1 }));
-//      tests.add(new TestCase(new double[] { 0.2 }, new double[] { 0.2 }));
-//      tests.add(new TestCase(new double[] { 0.3 }, new double[] { 0.3 }));
-//      tests.add(new TestCase(new double[] { 0.4 }, new double[] { 0.4 }));
-//      tests.add(new TestCase(new double[] { 0.5 }, new double[] { 0.5 }));
-//      tests.add(new TestCase(new double[] { 0.6 }, new double[] { 0.6 }));
-//      tests.add(new TestCase(new double[] { 0.7 }, new double[] { 0.7 }));
-//      tests.add(new TestCase(new double[] { 0.8 }, new double[] { 0.8 }));
-//      tests.add(new TestCase(new double[] { 0.9 }, new double[] { 0.9 }));
       Random rand = new Random();
       for (int i = 0; i < 1000; ++i) {
          double x = rand.nextDouble();
@@ -38,7 +29,7 @@ public class Main {
       */
 
       GeneticAlgorithm gen = new GeneticAlgorithm(new int[] {2, 2, 1}, tests);
-      Network best = gen.run(1000);
+      Network best = gen.run(100);
       best.print();
       System.out.println("BEST FITNESS: " + best.calcFitness(tests));
 

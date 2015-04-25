@@ -84,25 +84,44 @@ public class GeneticAlgorithm {
       ArrayList<Network> generation = new ArrayList<Network>();
       ArrayList<Network> parents = new ArrayList<Network>();
 
+      // Add in best individual if elitism is true.
       if (kElitism) {
          generation.add(getBest());
       }
 
+      // Calculate fitness levels
       double[] fitnesses = new double[kPopulationSize];
+      double totalFitness = 0.0;
       for (int i = 0; i < kPopulationSize; ++i) {
          fitnesses[i] = population.get(i).calcFitness(tests);
+         totalFitness += fitnesses[i];
       }
 
+      // Adjust fitnesses to represent percentages of total fitness
+      /* For some reason, this actually decreases learning! */
+//      for (int i = 0; i < kPopulationSize; ++i) {
+//         fitnesses[i] = fitnesses[i] / totalFitness;
+//      }
+
+
+      // Parent selection.
+      // Parents are selected based based on their fitness probability as a
+      // fraction (fitness / totalFitness).
       for (int i = 0; i < kParentSize; ++i) {
          double factor = rand.nextDouble();
          double border = fitnesses[0];
          int ctr = 0;
 
+         System.out.println("============");
          while (factor > border) {
+//            System.out.println(border);
             border += fitnesses[++ctr];
          }
+//         System.out.println("============" + ctr);
+//         System.out.println("============" + fitnesses[ctr]);
          parents.add(population.get(ctr));
       }
+//      printPopulation(parents);
 
       while (generation.size() < kPopulationSize) {
          Network parent1 = parents.get(rand.nextInt(parents.size()));
@@ -112,13 +131,17 @@ public class GeneticAlgorithm {
       }
 
       this.population = generation;
-      //printPopulation();
+      //printPopulation(parents);
    }
 
-   private void printPopulation() {
+   /**
+    * Prints a population.
+    * @param pop population to print.
+    */
+   private void printPopulation(ArrayList<Network> pop) {
       System.out.println("GENERATION:");
-      for (int i = 0; i < kPopulationSize; ++i) {
-         System.out.println("  " + population.get(i) + ": " + population.get(i).calcFitness(tests));
+      for (int i = 0; i < pop.size(); ++i) {
+         System.out.println("  " + pop.get(i) + ": " + pop.get(i).calcFitness(tests));
       }
       System.out.println("  BEST:" + getBest().calcFitness(tests));
    }
