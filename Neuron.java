@@ -66,7 +66,6 @@ public class Neuron {
 
          // Calculate signal output.
          double result = Sigmoid.calculate(x);
-         //System.out.println("          OUTPUT: " + result);
          return result;
       }
 
