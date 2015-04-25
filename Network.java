@@ -61,29 +61,29 @@ public class Network {
    }
 
    /**
-    * Calculates the fitness of the network given a set of test cases.
-    * @param tests test cases
-    * @return fitness between 0.0 and 1.0
+    * Calculates the error of the network given a set of test cases.
+    * @param test test case
+    * @return error
     */
-   public double calcFitness(ArrayList<TestCase> tests) {
-      double totalError = 0.0;
+   public double[] calcError(TestCase test) {
+      System.out.println("Calculating error.");
+      print();
+      System.out.println("Test:");
+      System.out.println("  Input: " + Main.arrayToString(test.inputs));
+      System.out.println("  Expected output: " + Main.arrayToString(test.outputs));
+      double[] output = fire(test.inputs);
+      System.out.println("  Got: " + Main.arrayToString(output));
+      double[] errors = new double[output.length];
 
-      // Run each tests and sum up total error.
-      for (TestCase test : tests) {
-         double[] output = fire(test.inputs);
-         double error = 0.0;
-
-         // Calculate test error.
-         for (int i = 0; i < output.length; ++i) {
-            error += Math.abs(output[i] - test.outputs[i]);
-         }
-
-         // Divide test error by number of outputs and add to total.
-         totalError += error / output.length;
+      // Calculate test error for each output neuron.
+      for (int i = 0; i < output.length; ++i) {
+         errors[i] = output[i] *
+                     (1 - output[i]) *
+                     (test.outputs[i] - output[i]);
       }
 
-      // Return the average fitness.
-      return 1 - (totalError / tests.size());
+      // Return the errors.
+      return errors;
    }
 
    /**

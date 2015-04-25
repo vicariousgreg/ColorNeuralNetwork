@@ -5,16 +5,8 @@ import java.util.Scanner;
 
 public class Main {
    public static void main(String[] args) {
+      // Generate test cases.
       ArrayList<TestCase> tests = new ArrayList<TestCase>();
-//      tests.add(new TestCase(new double[] { 0.1 }, new double[] { 0.1 }));
-//      tests.add(new TestCase(new double[] { 0.2 }, new double[] { 0.2 }));
-//      tests.add(new TestCase(new double[] { 0.3 }, new double[] { 0.3 }));
-//      tests.add(new TestCase(new double[] { 0.4 }, new double[] { 0.4 }));
-//      tests.add(new TestCase(new double[] { 0.5 }, new double[] { 0.5 }));
-//      tests.add(new TestCase(new double[] { 0.6 }, new double[] { 0.6 }));
-//      tests.add(new TestCase(new double[] { 0.7 }, new double[] { 0.7 }));
-//      tests.add(new TestCase(new double[] { 0.8 }, new double[] { 0.8 }));
-//      tests.add(new TestCase(new double[] { 0.9 }, new double[] { 0.9 }));
       Random rand = new Random();
       for (int i = 0; i < 1000; ++i) {
          double x = rand.nextDouble();
@@ -22,8 +14,12 @@ public class Main {
          double answer = (x < y) ? 1.0 : 0.0;
          tests.add(new TestCase(new double[] { x, y }, new double[] { answer }));
       }
-      Network best = new Network(new int[] {1, 1});
-      //System.out.println("Network fitness: " + network.calcFitness(tests));
+      Network network = new Network(new int[] {2, 1, 1});
+
+      for (int i = 0; i < 10; ++i) {
+         System.out.println("Network error: " + arrayToString(network.calcError(tests.get(i))));
+      }
+      System.exit(0);
 
 
       /*
@@ -45,7 +41,7 @@ public class Main {
          double x = in.nextDouble();
          System.out.print("Enter y: ");
          double y = in.nextDouble();
-         double result = best.fire(new double[] {x,y})[0];
+         double result = network.fire(new double[] {x,y})[0];
          if (result < 0.5) {
             if (x > y) System.out.println("Correct!");
             else System.out.println("WRONG!");
