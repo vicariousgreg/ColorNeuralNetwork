@@ -114,14 +114,14 @@ public class Neuron {
 
       for (int i = 0; i < n1.weights.length; ++i) {
          if (rand.nextDouble() < 0.5) {
-            newWeights[i] = n1.weights[i];
+            newWeights[i] = n1.weights[i] - 0.1 + rand.nextDouble() * 0.2;
          } else {
-            newWeights[i] = n2.weights[i];
+            newWeights[i] = n2.weights[i] - 0.1 + rand.nextDouble() * 0.2;
          }
       }
 
-      double newBias = n1.bias;
-      if (rand.nextDouble() < 0.5) newBias = n2.bias;
+      double newBias = n1.bias - 0.1 + rand.nextDouble() * 0.2;
+      if (rand.nextDouble() < 0.5) newBias = n2.bias - 0.1 + rand.nextDouble() * 0.2;
 
       return new Neuron(newWeights, newBias);
    }

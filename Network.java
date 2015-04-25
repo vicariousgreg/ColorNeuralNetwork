@@ -120,7 +120,6 @@ public class Network {
     * @return child network
     */
    public static Network crossover(Network net1, Network net2) {
-      Random rand = new Random();
       ArrayList<Neuron[]> newLayers = new ArrayList<Neuron[]>();
 
       for (int layerIndex = 0; layerIndex < net1.layers.size(); ++layerIndex) {
@@ -130,10 +129,7 @@ public class Network {
          Neuron[] newLayer = new Neuron[layerSize];
 
          for (int neuronIndex = 0; neuronIndex < layerSize; ++neuronIndex) {
-            double factor = rand.nextDouble();
-            if (factor < 0.34) newLayer[neuronIndex] = layer1[neuronIndex].clone();
-            else if (factor > 0.67) newLayer[neuronIndex] = layer2[neuronIndex].clone();
-            else newLayer[neuronIndex] =
+            newLayer[neuronIndex] =
                Neuron.crossover(layer1[neuronIndex], layer2[neuronIndex]);
          }
          newLayers.add(newLayer);

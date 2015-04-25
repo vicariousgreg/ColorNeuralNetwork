@@ -29,7 +29,7 @@ public class Main {
 
       //Network network = new Network(new int[] {1, 3, 3, 1});
       GeneticAlgorithm gen = new GeneticAlgorithm(new int[] {1, 1}, tests);
-      Network best = gen.run(10);
+      Network best = gen.run(100);
       System.out.println("BEST FITNESS: " + best.calcFitness(tests));
    }
 

@@ -5,8 +5,8 @@ import java.util.Random;
  * Genetic Algorithm class for neural networks.
  */
 public class GeneticAlgorithm {
-   private static final int kPopulationSize = 50;
-   private static final int kTournamentSize = 5;
+   private static final int kPopulationSize = 10;
+   private static final int kParentSize = 5;
    private static final double kMutationRate = 0.1;
    private static final boolean kElitism = true;
 
@@ -49,6 +49,8 @@ public class GeneticAlgorithm {
       for (int i = 0; i < kPopulationSize; ++i) {
          population.add(new Network(layerSizes));
       }
+
+      System.out.println("Initial population best: " + getBest().calcFitness(tests));
    }
 
    /**
@@ -77,41 +79,39 @@ public class GeneticAlgorithm {
     * Replaces the population with the next generation.
     */
    private void evolve() {
+      Random rand = new Random();
       ArrayList<Network> generation = new ArrayList<Network>();
+      ArrayList<Network> parents = new ArrayList<Network>();
 
       if (kElitism) {
          generation.add(getBest());
       }
 
-      while (generation.size() < kPopulationSize) {
-         generation.add(tournament().mutate(kMutationRate));
+      double[] fitnesses = new double[kPopulationSize];
+      for (int i = 0; i < kPopulationSize; ++i) {
+         fitnesses[i] = population.get(i).calcFitness(tests);
       }
-      this.population = generation;
-      printPopulation();
-   }
 
-   /**
-    * Performs a tournament and returns the winner.
-    * @return tournament winner
-    */
-   private Network tournament() {
-      Network best = null;
-      double bestFitness = -1.0;
+      for (int i = 0; i < kParentSize; ++i) {
+         double factor = rand.nextDouble();
+         double border = fitnesses[0];
+         int ctr = 0;
 
-      // Generate tournament population.
-      for (int i = 0; i < kTournamentSize; ++i) {
-         Network individual = population.get(rand.nextInt(kPopulationSize));
-
-         // Calculate fitness and determine if best.
-         double fitness = individual.calcFitness(tests);
-         if (fitness > bestFitness) {
-            best = individual;
-            bestFitness = fitness;
+         while (factor > border) {
+            border += fitnesses[++ctr];
          }
+         parents.add(population.get(ctr));
       }
 
-      //System.out.println("TOURNAMENT BEST: " + best.calcFitness(tests));
-      return best;
+      while (generation.size() < kPopulationSize) {
+         Network parent1 = parents.get(rand.nextInt(parents.size()));
+         Network parent2 = parents.get(rand.nextInt(parents.size()));
+         Network child = Network.crossover(parent1, parent2);
+         generation.add(child);
+      }
+
+      this.population = generation;
+      //printPopulation();
    }
 
    private void printPopulation() {
