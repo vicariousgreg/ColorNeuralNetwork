@@ -75,14 +75,16 @@ public class Network {
       // Run each tests and sum up total error.
       for (TestCase test : tests) {
          //System.out.println("Running test!");
-         //System.out.println("Expecting: " + Main.arrayToString(test.outputs));
+         //System.out.println("  Expecting: " + Main.arrayToString(test.outputs));
          double[] output = fire(test.inputs);
+         //System.out.println("  Got: " + Main.arrayToString(output));
          double error = 0.0;
 
          // Calculate test error.
          for (int i = 0; i < output.length; ++i) {
             error += Math.abs(output[i] - test.outputs[i]);
          }
+         //System.out.println("  Error: " + error);
 
          // Divide test error by number of outputs and add to total.
          totalError += error / output.length;

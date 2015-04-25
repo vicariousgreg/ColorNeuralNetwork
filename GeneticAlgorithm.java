@@ -50,7 +50,8 @@ public class GeneticAlgorithm {
          population.add(new Network(layerSizes));
       }
 
-      System.out.println("Initial population best: " + getBest().calcFitness(tests));
+      getBest().print();
+      System.out.println("  Fitness: " + getBest().calcFitness(tests));
    }
 
    /**
