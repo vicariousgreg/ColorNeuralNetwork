@@ -8,11 +8,18 @@ public class Network {
    /** Network neuron layers. */
    private ArrayList<Neuron[]> layers;
 
+   /** Number of inputs to the network. */
+   private int numInputs;
+
+   /** Learning constant. */
+   private double learningConstant = 0.1;
+
    /**
     * Constructor.
     * @param layerSizes number of neurons per layer (index 0 is input size)
     */
    public Network(int[] layerSizes) {
+      numInputs = layerSizes[0];
       layers = new ArrayList<Neuron[]>();
 
       // Create each layer
@@ -38,11 +45,23 @@ public class Network {
    }
 
    /**
+    * Sets the learning constant.
+    * @param learningConstant new learning constant
+    */
+   public void setLearningConstant(double learningConstant) {
+      this.learningConstant = learningConstant;
+   }
+
+   /**
     * Fires the neural network and returns output.
     * @param input input signals
     * @return output signals
     */
    public double[] fire(double[] input) {
+      // Validate input size.
+      if (input.length != numInputs)
+         throw new RuntimeException("Network fired with improper input!");
+
       double[] output = null;
 
       // Thread input through network layers.
@@ -87,6 +106,10 @@ public class Network {
     * @return all neuron output signals
     */
    public ArrayList<double[]> getOutputs(double[] input) {
+      // Validate input size.
+      if (input.length != numInputs)
+         throw new RuntimeException("Network fired with improper input!");
+
       ArrayList<double[]> outputs = new ArrayList<double[]>();
 
       // Thread input through network layers.
@@ -179,9 +202,6 @@ public class Network {
     * @param test test case
     */
    public void learn(TestCase test) {
-      // Learning constant.
-      final double kGamma = 0.1;
-
       // Fire network and gather outputs.
       ArrayList<double[]> outputs = getOutputs(test.inputs);
 
@@ -207,15 +227,15 @@ public class Network {
             Neuron neuron = currLayer[currIndex];
 
             // Set weight deltas.
-            // delta[p][c] = kGamma * errors[c] * output[p]
+            // delta[p][c] = learningConstant * errors[c] * output[p]
             for (int prevIndex = 0; prevIndex < output.length; ++prevIndex) {
                neuron.setWeightDelta(prevIndex,
-                  kGamma * errors[currIndex] *
+                  learningConstant * errors[currIndex] *
                        output[prevIndex]);
             }
             // Set bias delta.
-            // dB = kGamma * errors[c]
-            neuron.setBiasDelta(kGamma * errors[currIndex]);
+            // dB = learningConstant * errors[c]
+            neuron.setBiasDelta(learningConstant * errors[currIndex]);
          }
 
          // Stop at input layer.
@@ -275,16 +295,18 @@ public class Network {
    }
 
    /**
-    * Prints the network.
+    * Returns a string representation of this network.
+    * @return string representation
     */
-   public void print() {
-      System.out.println("  Network");
+   public String toString() {
+      StringBuilder sb = new StringBuilder("Network\n");
 
       for (Neuron[] layer : layers) {
-         System.out.println("      LAYER");
+         sb.append("  LAYER\n");
          for (int i = 0; i < layer.length; ++i) {
-            layer[i].print();
+            sb.append(layer[i] + "\n");
          }
       }
+      return sb.toString();
    }
 }

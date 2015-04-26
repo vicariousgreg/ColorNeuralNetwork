@@ -109,6 +109,8 @@ public class Main {
          calcPercentCorrect(validation, network));
       System.out.println();
 
+      System.out.println(network);
+
 
       /////////////////
       /* INTERACTION */

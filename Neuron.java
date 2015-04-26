@@ -81,7 +81,6 @@ public class Neuron {
 
       // Calculate signal output.
       return Sigmoid.calculate(x);
-//      return Sigmoid.trueCalculate(x);
    }
 
    /**
@@ -138,11 +137,13 @@ public class Neuron {
    }
 
    /**
-    * Prints the neuron's weights and bias.
+    * Returns a string representation of this neuron.
+    * @return string representation
     */
-   public void print() {
-      System.out.println("        NEURON: ");
-      System.out.println("          WEIGHTS: " + Arrays.toString(weights));
-      System.out.println("          BIAS: " + bias);
+   public String toString() {
+      StringBuilder sb = new StringBuilder("     NEURON:\n");
+      sb.append("        WEIGHTS: " + Arrays.toString(weights) + "\n");
+      sb.append("        BIAS: " + bias);
+      return sb.toString();
    }
 }
