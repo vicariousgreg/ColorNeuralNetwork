@@ -6,7 +6,7 @@ import java.util.Random;
  */
 public class Sigmoid {
    /** Estimation granularity in points per integer. */
-   private static final int kGranularity = 10;
+   private static final int kGranularity = 1000;
 
    /** Estimation bounds. */
    private static final int kEstimationBounds = 10;
@@ -42,18 +42,24 @@ public class Sigmoid {
     * @return estimated sigmoid value
     */
    public static double calculate(double x) {
-      if (Double.compare(x, kGranularity) > 0) return 1.0;
-      if (Double.compare(x, -kGranularity) < 0) return -1.0;
+      try {
+         if (Double.compare(x, kEstimationBounds) > 0) return 1.0;
+         if (Double.compare(x, -kEstimationBounds) < 0) return -1.0;
 
-      // Calculate interpolation bounds.
-      int x0 = (int) Math.floor(x * kGranularity);
-      int x1 = (int) Math.ceil(x * kGranularity);
+         // Calculate interpolation bounds.
+         int x0 = (int) Math.floor(x * kGranularity);
+         int x1 = (int) Math.ceil(x * kGranularity);
 
-      // Calculate interpolation values.
-      double y0 = precalculated.get(x0);
-      double y1 = precalculated.get(x1);
-      return interpolate(x, y0, y1,
-         (double)x0 / kGranularity, (double)x1 / kGranularity);
+         // Calculate interpolation values.
+         double y0 = precalculated.get(x0);
+         double y1 = precalculated.get(x1);
+         return interpolate(x, y0, y1,
+            (double)x0 / kGranularity, (double)x1 / kGranularity);
+      } catch (Exception e) {
+         System.out.println("Sigmoid failed on input " + x);
+         System.exit(0);
+         return 0.0;
+      }
    }
 
    /**

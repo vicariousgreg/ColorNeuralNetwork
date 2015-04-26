@@ -81,6 +81,7 @@ public class Neuron {
 
       // Calculate signal output.
       return Sigmoid.calculate(x);
+//      return Sigmoid.trueCalculate(x);
    }
 
    /**

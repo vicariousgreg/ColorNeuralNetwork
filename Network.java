@@ -106,6 +106,20 @@ public class Network {
    }
 
    /**
+    * Calculates the total test error by summing up individual test
+    * case errors.
+    * @param tests test suite
+    * @return total test error
+    */
+   public double calcTotalTestError(ArrayList<TestCase> tests) {
+      double totalTestError = 0.0;
+      for (int i = 0; i < tests.size(); ++i) {
+         totalTestError += calcTestError(tests.get(i));
+      }
+      return totalTestError;
+   }
+
+   /**
     * Runs a test and calculates the total error.
     * Uses sum of quadratic deviations.
     * @param test test to calculate error for
@@ -166,7 +180,7 @@ public class Network {
     */
    public void learn(TestCase test) {
       // Learning constant.
-      final double kGamma = 0.2;
+      final double kGamma = 0.1;
 
       // Fire network and gather outputs.
       ArrayList<double[]> outputs = getOutputs(test.inputs);
