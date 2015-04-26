@@ -74,6 +74,27 @@ public class Neuron {
    }
 
    /**
+    * Adjusts a weight in the neuron.
+    * @param weightIndex weight index
+    * @param offset weight offset
+    * @return new weight
+    */
+   public double adjustWeight(int weightIndex, double offset) {
+      weights[weightIndex] += offset;
+      return weights[weightIndex];
+   }
+
+   /**
+    * Adjusts the bias of the neuron.
+    * @param offset bias offset
+    * @return new bias
+    */
+   public double adjustBias(double offset) {
+      bias += offset;
+      return bias;
+   }
+
+   /**
     * Getter for weights.
     * @return weights
     */

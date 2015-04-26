@@ -37,7 +37,7 @@ public class Network {
    }
 
    /**
-    * Fires the neural network.
+    * Fires the neural network and returns output.
     * @param input input signals
     * @return output signals
     */
@@ -61,33 +61,132 @@ public class Network {
    }
 
    /**
-    * Calculates the error of the network given a set of test cases.
-    * @param test test case
-    * @return error
+    * Fires the neural network and returns all neuron outputs.
+    * @param input input signals
+    * @return all neuron output signals
     */
-   public double[] calcError(TestCase test) {
-      double[] output = fire(test.inputs);
-      double[] errors = new double[output.length];
+   public ArrayList<double[]> getOutputs(double[] input) {
+      ArrayList<double[]> outputs = new ArrayList<double[]>();
+      double[] output = null;
 
-      // Calculate test error for each output neuron.
-      for (int i = 0; i < output.length; ++i) {
-         errors[i] = output[i] *
-                     (1 - output[i]) *
-                     (test.outputs[i] - output[i]);
+      // Thread input through network layers.
+      for (Neuron[] layer : layers) {
+         output = new double[layer.length];
+
+         // Process input and catch output.
+         for (int i = 0; i < layer.length; ++i) {
+            output[i] = layer[i].fire(input);
+         }
+
+         outputs.add(output);
+
+         // Set up input for next layer.
+         input = output;
       }
 
-      System.out.println("Calculating error.");
-      //print();
-      System.out.println("  Test:");
-      System.out.println("    Input: " + Main.arrayToString(test.inputs));
-      System.out.println("    Expected output: " + Main.arrayToString(test.outputs));
-      System.out.println("  Got: " + Main.arrayToString(output));
-      System.out.println("  Error: " + Main.arrayToString(errors));
-      System.out.println();
+      return outputs;
+   }
 
+   /**
+    * Calculates the total error of a test.
+    * @param test test to calculate error for
+    * @return total error
+    */
+   public double calcTestError(TestCase test) {
+      ArrayList<double[]> outputs = getOutputs(test.inputs);
+      double[] error = calcError(outputs.get(outputs.size() - 1), test.outputs);
+
+      double totalError = 0.0;
+      for (int i = 0; i < error.length; ++i) {
+         totalError += error[i];
+      }
+      return totalError;
+   }
+
+   /**
+    * Calculates the error of the network given actual and expected output
+    * @param actual network output
+    * @param expected expected output
+    * @return error
+    */
+   public double[] calcError(double[] actual, double[] expected) {
+      double[] errors = new double[actual.length];
+
+      // Calculate test error for each output neuron.
+      for (int i = 0; i < actual.length; ++i) {
+         errors[i] = actual[i] *
+                     (1 - actual[i]) *
+                     (expected[i] - actual[i]);
+      }
 
       // Return the errors.
       return errors;
+   }
+
+   /**
+    * Teaches the network using a test case.
+    * @param test test case
+    */
+   public void learn(TestCase test) {
+      // Learning constant.
+      final double kN = 1.0;
+      final double kGammaBias = 1.0;
+
+//      System.out.println("Firing...");
+
+      // Calculate network outputs
+      ArrayList<double[]> outputs = getOutputs(test.inputs);
+
+      // Calculate error for output layer
+      double[] target = test.outputs;
+      double[] output = outputs.get(outputs.size() - 1);
+      double[] error = calcError(output, target);
+
+      // Backpropagate through layers.
+      for (int layerIndex = layers.size() - 1; layerIndex >= 0; --layerIndex) {
+         output = (layerIndex > 0)
+            ? outputs.get(layerIndex - 1)
+            : test.inputs;
+         Neuron[] currLayer = layers.get(layerIndex);
+
+         int previousLength = (layerIndex > 0)
+            ? layers.get(layerIndex - 1).length
+            : test.inputs.length;
+
+         double[][] weights = new double[previousLength][currLayer.length];
+
+//         System.out.println("  Adjusting layer weights for layer " + layerIndex);
+
+         // Adjust current layer weights and biases.
+         for (int currIndex = 0; currIndex < currLayer.length; ++currIndex) {
+            // Adjust weights.
+            for (int prevIndex = 0; prevIndex < previousLength; ++prevIndex) {
+               weights[prevIndex][currIndex] =
+                  currLayer[currIndex].adjustWeight(prevIndex,
+                     kN * error[currIndex] *
+                          output[prevIndex]);
+            }
+            // Adjust bias.
+            currLayer[currIndex].adjustBias(kGammaBias * error[currIndex]);
+         }
+
+         if (layerIndex == 0) break;
+//         System.out.println("  Calculating error for layer " + (layerIndex - 1));
+
+         // Calculate hidden layer error.
+         double[] newError = new double[previousLength];
+         for (int prevIndex = 0; prevIndex < previousLength; ++prevIndex) {
+            double sigma = 0.0;
+
+            // Calculate error sigma.
+            for (int currIndex = 0; currIndex < currLayer.length; ++currIndex) {
+               sigma += error[currIndex] * weights[prevIndex][currIndex];
+            }
+
+            newError[prevIndex] = output[prevIndex] * (1 - output[prevIndex]) * sigma;
+         }
+         error = newError;
+      }
    }
 
    /**
