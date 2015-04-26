@@ -88,7 +88,7 @@ public class Network {
    }
 
    /**
-    * Calculates the total error of a test.
+    * Runs a test and calculates the total error of a test.
     * @param test test to calculate error for
     * @return total error
     */
@@ -132,8 +132,6 @@ public class Network {
       final double kN = 1.0;
       final double kGammaBias = 1.0;
 
-//      System.out.println("Firing...");
-
       // Calculate network outputs
       ArrayList<double[]> outputs = getOutputs(test.inputs);
 
@@ -155,8 +153,6 @@ public class Network {
 
          double[][] weights = new double[previousLength][currLayer.length];
 
-//         System.out.println("  Adjusting layer weights for layer " + layerIndex);
-
          // Adjust current layer weights and biases.
          for (int currIndex = 0; currIndex < currLayer.length; ++currIndex) {
             // Adjust weights.
@@ -171,7 +167,6 @@ public class Network {
          }
 
          if (layerIndex == 0) break;
-//         System.out.println("  Calculating error for layer " + (layerIndex - 1));
 
          // Calculate hidden layer error.
          double[] newError = new double[previousLength];
