@@ -10,7 +10,7 @@ public class Network {
 
    /**
     * Constructor.
-    * @param layerSizes number of neurons per layer (0 is input size)
+    * @param layerSizes number of neurons per layer (index 0 is input size)
     */
    public Network(int[] layerSizes) {
       layers = new ArrayList<Neuron[]>();
@@ -30,6 +30,7 @@ public class Network {
 
    /**
     * Explicit constructor.
+    * Sets layers.
     * @param layers neuron layers
     */
    private Network(ArrayList<Neuron[]> layers) {
@@ -61,75 +62,101 @@ public class Network {
    }
 
    /**
+    * Gets a table of weights for the neurons in a given layer.
+    * @param layerIndex layer index
+    * @return weights table
+    */
+   public double[][] getLayerWeights(int layerIndex) {
+      Neuron[] previousLayer = layers.get(layerIndex - 1);
+      Neuron[] currLayer = layers.get(layerIndex);
+      double[][] weights = new double[previousLayer.length][currLayer.length];
+
+      for (int c = 0; c < currLayer.length; ++c) {
+         Neuron neuron = currLayer[c];
+         double[] currWeights = neuron.getWeights();
+         for (int p = 0; p < previousLayer.length; ++p) {
+            weights[p][c] = currWeights[p];
+         }
+      }
+      return weights;
+   }
+
+   /**
     * Fires the neural network and returns all neuron outputs.
     * @param input input signals
     * @return all neuron output signals
     */
    public ArrayList<double[]> getOutputs(double[] input) {
       ArrayList<double[]> outputs = new ArrayList<double[]>();
-      double[] output = null;
 
       // Thread input through network layers.
       for (Neuron[] layer : layers) {
-         output = new double[layer.length];
+         double[] output = new double[layer.length];
 
          // Process input and catch output.
          for (int i = 0; i < layer.length; ++i) {
             output[i] = layer[i].fire(input);
          }
-
          outputs.add(output);
 
          // Set up input for next layer.
          input = output;
       }
-
       return outputs;
    }
 
    /**
-    * Runs a test and calculates the total error of a test.
+    * Runs a test and calculates the total error.
+    * Uses sum of quadratic deviations.
     * @param test test to calculate error for
     * @return total error
     */
    public double calcTestError(TestCase test) {
-      ArrayList<double[]> outputs = getOutputs(test.inputs);
-      double[] error = calcError(outputs.get(outputs.size() - 1), test.outputs);
+      // Get quadratic deviations for each output neuron
+      double[] errors = calcError(fire(test.inputs), test.outputs);
 
+      // Total deviations.
       double totalError = 0.0;
-      for (int i = 0; i < error.length; ++i) {
-         totalError += error[i];
+      for (int i = 0; i < errors.length; ++i) {
+         totalError += errors[i];
       }
       return totalError;
    }
 
    /**
     * Calculates the error of the network given actual and expected output.
+    * Uses quadratic deviation.
     * @param actual network output
     * @param expected expected output
-    * @return error
+    * @return errors
     */
    public double[] calcError(double[] actual, double[] expected) {
       double[] errors = new double[actual.length];
 
       // Calculate test error for each output neuron.
       for (int i = 0; i < actual.length; ++i) {
-         errors[i] = 0.5 * (expected[i] - actual[i]) * (expected[i] - actual[i]);
+         errors[i] = 0.5 *
+                     (expected[i] - actual[i]) *
+                     (expected[i] - actual[i]);
       }
-
-      // Return the errors.
       return errors;
    }
 
+   /**
+    * Calculates backpropagation error, which is the derivative of the error.
+    * @param actual network output
+    * @param expected expected output
+    * @return backpropagation error
+    */
    private double[] calcBPError(double[] actual, double[] expected) {
       double[] errors = new double[actual.length];
 
       // Calculate backpropagated error for each output neuron.
       for (int i = 0; i < actual.length; ++i) {
-         errors[i] = actual[i] * (1 - actual[i]) * (expected[i] - actual[i]);
+         errors[i] = actual[i] *
+                     (1 - actual[i]) *
+                     (expected[i] - actual[i]);
       }
-
-      // Return the errors.
       return errors;
    }
 
@@ -139,59 +166,69 @@ public class Network {
     */
    public void learn(TestCase test) {
       // Learning constant.
-      final double kN = 1.0;
-      final double kGammaBias = 1.0;
+      final double kGamma = 0.2;
 
-      // Calculate network outputs
+      // Fire network and gather outputs.
       ArrayList<double[]> outputs = getOutputs(test.inputs);
 
       // Calculate error for output layer
-      double[] target = test.outputs;
+      // The output layer derives its error from the error function.
+      // Backpropagation requires calculation of the derivative.
       double[] output = outputs.get(outputs.size() - 1);
-      double[] error = calcBPError(output, target);
+      double[] errors = calcBPError(output, test.outputs);
 
       // Backpropagate through layers.
       for (int layerIndex = layers.size() - 1; layerIndex >= 0; --layerIndex) {
+         // Get output from previous layer.
+         // For input layer, this is the test input.
          output = (layerIndex > 0)
             ? outputs.get(layerIndex - 1)
             : test.inputs;
+
+         // Get current layer.
          Neuron[] currLayer = layers.get(layerIndex);
-
-         int previousLength = output.length;
-
-         double[][] weights = new double[previousLength][currLayer.length];
 
          // Set deltas for each neuron.
          for (int currIndex = 0; currIndex < currLayer.length; ++currIndex) {
             Neuron neuron = currLayer[currIndex];
 
             // Set weight deltas.
-            for (int prevIndex = 0; prevIndex < previousLength; ++prevIndex) {
-               weights[prevIndex][currIndex] = neuron.getWeights()[prevIndex];
+            // delta[p][c] = kGamma * errors[c] * output[p]
+            for (int prevIndex = 0; prevIndex < output.length; ++prevIndex) {
                neuron.setWeightDelta(prevIndex,
-                  kN * error[currIndex] *
+                  kGamma * errors[currIndex] *
                        output[prevIndex]);
             }
             // Set bias delta.
-            neuron.setBiasDelta(kGammaBias * error[currIndex]);
+            // dB = kGamma * errors[c]
+            neuron.setBiasDelta(kGamma * errors[currIndex]);
          }
 
          // Stop at input layer.
          if (layerIndex == 0) break;
 
-         // Backpropagate errors.
-         double[] newError = new double[previousLength];
-         for (int prevIndex = 0; prevIndex < previousLength; ++prevIndex) {
+         // Create weights table for the current layer.
+         double[][] weights = getLayerWeights(layerIndex);
+
+         // Calculate hidden layer backpropagated errors.
+         // newErrors[p] = out[p] * (1 - out[p]) * sigma(errors[c] * weights[p][c])
+         double[] newErrors = new double[output.length];
+         for (int prevIndex = 0; prevIndex < output.length; ++prevIndex) {
             double sigma = 0.0;
 
             // Calculate error sigma.
             for (int currIndex = 0; currIndex < currLayer.length; ++currIndex) {
-               sigma += error[currIndex] * weights[prevIndex][currIndex];
+               sigma += errors[currIndex] * weights[prevIndex][currIndex];
             }
 
-            newError[prevIndex] = output[prevIndex] * (1 - output[prevIndex]) * sigma;
+            // Set the new error.
+            newErrors[prevIndex] = output[prevIndex] *
+                                  (1 - output[prevIndex]) *
+                                  sigma;
          }
-         error = newError;
+
+         // Move new errors over for next iteration.
+         errors = newErrors;
       }
 
       // Commit deltas.
@@ -209,9 +246,11 @@ public class Network {
    public Network clone() {
       ArrayList<Neuron[]> newLayers = new ArrayList<Neuron[]>();
 
+      // Iterate through layers.
       for (Neuron[] layer : layers) {
          Neuron[] newLayer = new Neuron[layer.length];
 
+         // Iterate through neurons in layer.
          for (int i = 0; i < layer.length; ++i) {
             newLayer[i] = layer[i].clone();
          }

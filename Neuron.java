@@ -1,3 +1,4 @@
+import java.util.Arrays;
 import java.util.Random;
 
 /**
@@ -13,6 +14,7 @@ public class Neuron {
 
    /** Delta of weight changes for backpropagation. */
    private double[] weightDeltas;
+   /** Delta of bias change for backpropagation. */
    private double biasDelta;
 
    /**
@@ -30,16 +32,20 @@ public class Neuron {
 
    /**
     * Explicit constructor.
-    * Initializes weights and bias.
+    * Initializes weights and bias, deep copying weights.
+    * Useful for copying.
+    *
     * @param weights initial weights
     * @param bias initial bias
     */
    private Neuron(double[] weights, double bias) {
       this.numInputs = weights.length;
-      this.weights = new double[weights.length];
-      this.weightDeltas = new double[weights.length];
-      System.arraycopy(weights, 0, this.weights, 0, weights.length);
       this.bias = bias;
+      this.weightDeltas = new double[weights.length];
+
+      // Copy weights.
+      this.weights = new double[weights.length];
+      System.arraycopy(weights, 0, this.weights, 0, weights.length);
    }
 
    /**
@@ -47,6 +53,7 @@ public class Neuron {
     */
    public void randomize() {
       Random rand = new Random();
+
       // Randomize weights.
       for (int i = 0; i < numInputs; ++i) {
          this.weights[i] = rand.nextDouble() * 2 - 1;
@@ -61,22 +68,19 @@ public class Neuron {
     */
    public double fire(double[] inputs) {
       // Ensure input is of proper length.
-      if (inputs.length == numInputs) {
-         double x = 0.0;
+      if (inputs.length != numInputs)
+         throw new RuntimeException("Neuron received invalid number of inputs!");
 
-         // Calculate sigmoid input.
-         for (int i = 0; i < numInputs; ++i) {
-            x += inputs[i] * weights[i];
-         }
-         x += bias;
+      double x = 0.0;
 
-         // Calculate signal output.
-         double result = Sigmoid.calculate(x);
-         return result;
+      // Calculate sigmoid input.
+      for (int i = 0; i < numInputs; ++i) {
+         x += inputs[i] * weights[i];
       }
+      x += bias;
 
-      // If not, let's just return 0.0 for now.
-      return 0.0;
+      // Calculate signal output.
+      return Sigmoid.calculate(x);
    }
 
    /**
@@ -89,6 +93,14 @@ public class Neuron {
    }
 
    /**
+    * Sets the bias delta.
+    * @param offset bias offset
+    */
+   public void setBiasDelta(double offset) {
+      biasDelta = offset;
+   }
+
+   /**
     * Commits any pending weight deltas.
     */
    public void commitDeltas() {
@@ -98,14 +110,6 @@ public class Neuron {
       }
       bias += biasDelta;
       biasDelta = 0;
-   }
-
-   /**
-    * Sets the bias delta.
-    * @param offset bias offset
-    */
-   public void setBiasDelta(double offset) {
-      biasDelta = offset;
    }
 
    /**
@@ -137,7 +141,7 @@ public class Neuron {
     */
    public void print() {
       System.out.println("        NEURON: ");
-      System.out.println("          WEIGHTS: " + Main.arrayToString(weights));
+      System.out.println("          WEIGHTS: " + Arrays.toString(weights));
       System.out.println("          BIAS: " + bias);
    }
 }

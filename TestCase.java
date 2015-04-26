@@ -1,3 +1,5 @@
+import java.util.Arrays;
+
 /**
  * Represents a neural network test case.
  */
@@ -17,7 +19,12 @@ public class TestCase {
       this.outputs = outputs;
    }
 
+   /**
+    * Returns a string representation of this test case.
+    * @return string representation
+    */
    public String toString() {
-      return Main.arrayToString(inputs) + "\n" + Main.arrayToString(outputs);
+      return "Input: " + Arrays.toString(inputs) + "\n" +
+         "Expected output: " + Arrays.toString(outputs);
    }
 }

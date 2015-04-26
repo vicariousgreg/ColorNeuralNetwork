@@ -5,16 +5,25 @@ import java.util.Random;
  * Models the Sigmoid function using precalculated values to speed up computation.
  */
 public class Sigmoid {
+   /** Estimation granularity in points per integer. */
+   private static final int kGranularity = 10;
+
+   /** Estimation bounds. */
+   private static final int kEstimationBounds = 10;
+
    /**
-    * Map of x*10 values to Sigmoid outputs.
-    * Inputs are multiplied by ten so they are discrete.
+    * Map of values to Sigmoid outputs.
+    * Inputs are multiplied by granularity so they are discrete.
     */
    private static HashMap<Integer, Double> precalculated;
    static {
       precalculated = new HashMap<Integer, Double>();
 
-      for (int i = -100; i <= 100; ++i) {
-         precalculated.put(i, trueCalculate((double) i / 10));
+      for (int i = -kEstimationBounds; i <= kEstimationBounds; ++i) {
+         for (int tick = 0; tick < kGranularity; ++tick) {
+            precalculated.put(i * kGranularity + tick,
+               trueCalculate((double) i + (double)tick / kGranularity));
+         }
       }
    }
 
@@ -33,14 +42,18 @@ public class Sigmoid {
     * @return estimated sigmoid value
     */
    public static double calculate(double x) {
-      if (x > 10.0) return 1.0;
-      if (x < -10.0) return -1.0;
+      if (Double.compare(x, kGranularity) > 0) return 1.0;
+      if (Double.compare(x, -kGranularity) < 0) return -1.0;
 
-      int x0 = (int) Math.floor(x * 10);
-      int x1 = (int) Math.ceil(x * 10);
+      // Calculate interpolation bounds.
+      int x0 = (int) Math.floor(x * kGranularity);
+      int x1 = (int) Math.ceil(x * kGranularity);
+
+      // Calculate interpolation values.
       double y0 = precalculated.get(x0);
       double y1 = precalculated.get(x1);
-      return interpolate(x, y0, y1, (double)x0 / 10, (double)x1 / 10);
+      return interpolate(x, y0, y1,
+         (double)x0 / kGranularity, (double)x1 / kGranularity);
    }
 
    /**
