@@ -16,4 +16,8 @@ public class TestCase {
       this.inputs = inputs;
       this.outputs = outputs;
    }
+
+   public String toString() {
+      return Main.arrayToString(inputs) + "\n" + Main.arrayToString(outputs);
+   }
 }

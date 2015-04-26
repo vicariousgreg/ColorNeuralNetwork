@@ -104,7 +104,7 @@ public class Network {
    }
 
    /**
-    * Calculates the error of the network given actual and expected output
+    * Calculates the error of the network given actual and expected output.
     * @param actual network output
     * @param expected expected output
     * @return error
@@ -114,9 +114,19 @@ public class Network {
 
       // Calculate test error for each output neuron.
       for (int i = 0; i < actual.length; ++i) {
-         errors[i] = actual[i] *
-                     (1 - actual[i]) *
-                     (expected[i] - actual[i]);
+         errors[i] = 0.5 * (expected[i] - actual[i]) * (expected[i] - actual[i]);
+      }
+
+      // Return the errors.
+      return errors;
+   }
+
+   private double[] calcBPError(double[] actual, double[] expected) {
+      double[] errors = new double[actual.length];
+
+      // Calculate backpropagated error for each output neuron.
+      for (int i = 0; i < actual.length; ++i) {
+         errors[i] = actual[i] * (1 - actual[i]) * (expected[i] - actual[i]);
       }
 
       // Return the errors.
@@ -138,7 +148,7 @@ public class Network {
       // Calculate error for output layer
       double[] target = test.outputs;
       double[] output = outputs.get(outputs.size() - 1);
-      double[] error = calcError(output, target);
+      double[] error = calcBPError(output, target);
 
       // Backpropagate through layers.
       for (int layerIndex = layers.size() - 1; layerIndex >= 0; --layerIndex) {
@@ -147,28 +157,29 @@ public class Network {
             : test.inputs;
          Neuron[] currLayer = layers.get(layerIndex);
 
-         int previousLength = (layerIndex > 0)
-            ? layers.get(layerIndex - 1).length
-            : test.inputs.length;
+         int previousLength = output.length;
 
          double[][] weights = new double[previousLength][currLayer.length];
 
-         // Adjust current layer weights and biases.
+         // Set deltas for each neuron.
          for (int currIndex = 0; currIndex < currLayer.length; ++currIndex) {
-            // Adjust weights.
+            Neuron neuron = currLayer[currIndex];
+
+            // Set weight deltas.
             for (int prevIndex = 0; prevIndex < previousLength; ++prevIndex) {
-               weights[prevIndex][currIndex] =
-                  currLayer[currIndex].adjustWeight(prevIndex,
-                     kN * error[currIndex] *
-                          output[prevIndex]);
+               weights[prevIndex][currIndex] = neuron.getWeights()[prevIndex];
+               neuron.setWeightDelta(prevIndex,
+                  kN * error[currIndex] *
+                       output[prevIndex]);
             }
-            // Adjust bias.
-            currLayer[currIndex].adjustBias(kGammaBias * error[currIndex]);
+            // Set bias delta.
+            neuron.setBiasDelta(kGammaBias * error[currIndex]);
          }
 
+         // Stop at input layer.
          if (layerIndex == 0) break;
 
-         // Calculate hidden layer error.
+         // Backpropagate errors.
          double[] newError = new double[previousLength];
          for (int prevIndex = 0; prevIndex < previousLength; ++prevIndex) {
             double sigma = 0.0;
@@ -181,6 +192,13 @@ public class Network {
             newError[prevIndex] = output[prevIndex] * (1 - output[prevIndex]) * sigma;
          }
          error = newError;
+      }
+
+      // Commit deltas.
+      for (Neuron[] layer : layers) {
+         for (int i = 0; i < layer.length; ++i) {
+            layer[i].commitDeltas();
+         }
       }
    }
 

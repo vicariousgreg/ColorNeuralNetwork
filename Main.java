@@ -11,22 +11,23 @@ public class Main {
 
       Random rand = new Random();
       final int kNumTests = 5000;
-      final int kNumFringe = 10;
+      final int kNumFringe = 100;
 
       // Generate test cases.
       ArrayList<TestCase> tests = new ArrayList<TestCase>();
       for (int i = 0; i < kNumTests; ++i) {
          double x = rand.nextDouble() * 2 - 1.0;
          double y = rand.nextDouble() * 2 - 1.0;
-         double answer = (x < y) ? 1.0 : 0.0;
+         double answer = (Double.compare(x, y) < 0) ? 1.0 : 0.0;
          tests.add(new TestCase(new double[] { x, y }, new double[] { answer }));
       }
       // Add in fringe cases
       for (int i = 0; i < kNumFringe; ++i) {
          double x = rand.nextDouble() * 2 - 1.0;
          double y = x - 0.01;
-         double answer = (x < y) ? 1.0 : 0.0;
-         tests.add(new TestCase(new double[] { x, y }, new double[] { answer }));
+         tests.add(new TestCase(new double[] { x, y }, new double[] { 0.0 }));
+         y = x + 0.01;
+         tests.add(new TestCase(new double[] { x, y }, new double[] { 1.0 }));
       }
 
       // Generate validation set test cases.
@@ -34,15 +35,16 @@ public class Main {
       for (int i = 0; i < kNumTests; ++i) {
          double x = rand.nextDouble() * 2 - 1.0;
          double y = rand.nextDouble() * 2 - 1.0;
-         double answer = (x < y) ? 1.0 : 0.0;
+         double answer = (Double.compare(x, y) < 0) ? 1.0 : 0.0;
          validation.add(new TestCase(new double[] { x, y }, new double[] { answer }));
       }
       // Add in fringe cases
       for (int i = 0; i < kNumFringe; ++i) {
          double x = rand.nextDouble() * 2 - 1.0;
-         double y = x - 0.001;
-         double answer = 1.0;
-         validation.add(new TestCase(new double[] { x, y }, new double[] { answer }));
+         double y = x - 0.01;
+         validation.add(new TestCase(new double[] { x, y }, new double[] { 0.0 }));
+         y = x + 0.01;
+         validation.add(new TestCase(new double[] { x, y }, new double[] { 1.0 }));
       }
 
       //////////////
@@ -50,17 +52,36 @@ public class Main {
       //////////////
 
       // Create the network.
-      Network network = new Network(new int[] {2, 3, 1});
+      int[] layerSizes = new int[] {2, 3, 3, 1};
+      Network network = new Network(layerSizes);
 
       boolean acceptable = false;
       int stale = 0;
       final int kStaleThreshold = 100;
-      double prevPercentCorrect = calcPercentCorrect(tests, network);
-      double percentCorrect = 0.0;
-      final double kAcceptablePassingRate = 99.9;
+      double testError = calcTotalTestError(tests, network);
+      double prevTestError = 10000.0;
+      double percentCorrect = calcPercentCorrect(tests, network);
+      double prevPercentCorrect = 0;
+      final double kAcceptableTestError = 5;
+      final double kPercentCorrectThreshold = 95;
 
-      System.out.println("Average test error before learning: " + calcAverageTestError(tests, network));
-      System.out.println("Passing percentage: %" + prevPercentCorrect);
+      System.out.println("Total test error before learning: " + testError);
+      System.out.println("Passing percentage: %" + percentCorrect);
+
+      
+      /*
+      for (int i = 0; i < tests.size(); ++i) {
+         TestCase test = tests.get(i);
+         double beforeError = Math.abs(network.calcTestError(test));
+         network.learn(test);
+         double afterError = Math.abs(network.calcTestError(test));
+      }
+
+      System.out.println("Total test error after learning: " + calcTotalTestError(tests, network));
+      System.out.println("Passing percentage: %" + calcPercentCorrect(tests, network));
+
+      System.exit(0);
+      */
 
       // Teach the network until the error is acceptable.
       while (!acceptable) {
@@ -69,21 +90,35 @@ public class Main {
             network.learn(tests.get(i));
          }
 
-         percentCorrect = calcPercentCorrect(tests, network);
-         System.out.println("Passing percentage: %" + percentCorrect);
-         acceptable = percentCorrect > kAcceptablePassingRate;
+         testError = calcTotalTestError(validation, network);
+         percentCorrect = calcPercentCorrect(validation, network);
+
+         acceptable = testError < kAcceptableTestError && percentCorrect > kPercentCorrectThreshold;
 
          // Determine if the network needs to be reset.
-         if (stale > kStaleThreshold || prevPercentCorrect > percentCorrect + 25) {
-            network = new Network(new int[] {2, 3, 1});
-         } else if (Double.compare(prevPercentCorrect, percentCorrect) == 0) {
+         if (!acceptable && (stale > kStaleThreshold || prevTestError > testError + 25)) {
+            network = new Network(layerSizes);
+            stale = 0;
+//            System.out.println("===RESET===");
+            System.out.print(".");
+         } else if (Double.compare(testError, prevTestError) == 0 ||
+                    Double.compare(percentCorrect, prevPercentCorrect) == 0) {
             ++stale;
+         } else {
+            System.out.println("Test error: " + testError);
+            System.out.println("PercentCorrect: " + percentCorrect);
+            System.out.println();
+            stale = 0;
          }
+            System.out.println("Test error: " + testError);
+            System.out.println("PercentCorrect: " + percentCorrect);
+            System.out.println();
+         prevTestError = testError;
          prevPercentCorrect = percentCorrect;
       }
 
-      System.out.println("Average test error after learning: " + calcAverageTestError(tests, network));
-      System.out.println("Passing percentage: %" + calcPercentCorrect(tests, network));
+      System.out.println("Total test error after learning: " + calcTotalTestError(validation, network));
+      System.out.println("Passing percentage: %" + calcPercentCorrect(validation, network));
 
 
       /////////////////
@@ -137,12 +172,12 @@ public class Main {
       return sb.toString();
    }
 
-   public static double calcAverageTestError(ArrayList<TestCase> tests, Network network) {
+   public static double calcTotalTestError(ArrayList<TestCase> tests, Network network) {
       double totalTestError = 0.0;
       for (int i = 0; i < tests.size(); ++i) {
          totalTestError += Math.abs(network.calcTestError(tests.get(i)));
       }
-      return totalTestError / tests.size();
+      return totalTestError;
    }
 
    public static double calcPercentCorrect(ArrayList<TestCase> tests, Network network) {
@@ -154,8 +189,8 @@ public class Main {
          boolean passed = true;
 
          for (int j = 0; j < output.length; ++j) {
-            boolean outLow = output[j] < 0.5;
-            boolean expLow = test.outputs[j] < 0.5;
+            boolean outLow = Double.compare(output[j], 0.5) < 0;
+            boolean expLow = Double.compare(test.outputs[j], 0.5) < 0;
 
             if (outLow != expLow) passed = false;
          }

@@ -11,6 +11,10 @@ public class Neuron {
    /** Bias weight. */
    private double bias;
 
+   /** Delta of weight changes for backpropagation. */
+   private double[] weightDeltas;
+   private double biasDelta;
+
    /**
     * Randomized constructor.
     * Randomizes weights and bias.
@@ -20,6 +24,7 @@ public class Neuron {
    public Neuron(int numInputs) {
       this.numInputs = numInputs;
       this.weights = new double[numInputs];
+      this.weightDeltas = new double[numInputs];
       randomize();
    }
 
@@ -32,6 +37,7 @@ public class Neuron {
    private Neuron(double[] weights, double bias) {
       this.numInputs = weights.length;
       this.weights = new double[weights.length];
+      this.weightDeltas = new double[weights.length];
       System.arraycopy(weights, 0, this.weights, 0, weights.length);
       this.bias = bias;
    }
@@ -74,24 +80,32 @@ public class Neuron {
    }
 
    /**
-    * Adjusts a weight in the neuron.
+    * Sets the weight delta of a particular weight.
     * @param weightIndex weight index
     * @param offset weight offset
-    * @return new weight
     */
-   public double adjustWeight(int weightIndex, double offset) {
-      weights[weightIndex] += offset;
-      return weights[weightIndex];
+   public void setWeightDelta(int weightIndex, double offset) {
+      weightDeltas[weightIndex] = offset;
    }
 
    /**
-    * Adjusts the bias of the neuron.
-    * @param offset bias offset
-    * @return new bias
+    * Commits any pending weight deltas.
     */
-   public double adjustBias(double offset) {
-      bias += offset;
-      return bias;
+   public void commitDeltas() {
+      for (int i = 0; i < numInputs; ++i) {
+         weights[i] += weightDeltas[i];
+         weightDeltas[i] = 0;
+      }
+      bias += biasDelta;
+      biasDelta = 0;
+   }
+
+   /**
+    * Sets the bias delta.
+    * @param offset bias offset
+    */
+   public void setBiasDelta(double offset) {
+      biasDelta = offset;
    }
 
    /**
