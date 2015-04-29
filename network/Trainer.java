@@ -9,7 +9,7 @@ import java.util.Scanner;
 public class Trainer {
    /** The number of iterations the learning process can go through without
     * making significant improvements before the network is reset. */
-   private static final int kStaleThreshold = 100;
+   private static final int kStaleThreshold = 1000;
 
    /**
     * The error threshold for network regression.
@@ -18,9 +18,9 @@ public class Trainer {
    private static final int kErrorRegressionThreshold = 100;
 
    /** Acceptable test error for learning termination. */
-   private static final double kAcceptableTestError = 5;
+   private static final double kAcceptableTestError = 1000000;
    /** Acceptable percentage correct for learning termination. */
-   private static final double kAcceptablePercentCorrect = 95;
+   private static final double kAcceptablePercentCorrect = 60;
 
    /** Test suite. */
    private ArrayList<TestCase> tests;
@@ -34,6 +34,7 @@ public class Trainer {
 
    /**
     * Adds a test case to the trainer's suite.
+    * @param test test to add
     */
    public void addTest(TestCase test) {
       tests.add(test);
@@ -44,6 +45,10 @@ public class Trainer {
     * @param network network to train
     */
    public void train(Network network) {
+      if (tests.size() == 0) {
+         System.out.println("No tests!");
+         return;
+      }
       //////////////
       /* LEARNING */
       //////////////
@@ -126,15 +131,22 @@ public class Trainer {
       for (int i = 0; i < tests.size(); ++i) {
          TestCase test = tests.get(i);
          double[] output = network.fire(test.inputs);
-         boolean passed = true;
+
+         int outputMaxIndex = 0;
+         double outputMax = output[0];
+
+         int answerMaxIndex = 0;
+         double answerMax = test.outputs[0];
 
          // Determine if network guessed correctly.
          for (int j = 0; j < output.length; ++j) {
-            boolean outLow = Double.compare(output[j], 0.5) < 0;
-            boolean expLow = Double.compare(test.outputs[j], 0.5) < 0;
+            double out = output[j];
+            double ans = test.outputs[j];
 
-            if (outLow != expLow) passed = false;
+            if (out > outputMax) outputMaxIndex = j;
+            if (ans > answerMax) answerMaxIndex = j;
          }
+         boolean passed = outputMaxIndex == answerMaxIndex;
          if (passed) ++correct;
       }
       return 100.0 * (double) correct / tests.size();
