@@ -1,3 +1,5 @@
+package network;
+
 import java.util.ArrayList;
 import java.util.Random;
 
@@ -5,6 +7,9 @@ import java.util.Random;
  * Represents a neural network.
  */
 public class Network {
+   /** Layer sizes. */
+   private int[] layerSizes;
+
    /** Network neuron layers. */
    private ArrayList<Neuron[]> layers;
 
@@ -19,7 +24,8 @@ public class Network {
     * @param layerSizes number of neurons per layer (index 0 is input size)
     */
    public Network(int[] layerSizes) {
-      numInputs = layerSizes[0];
+      this.layerSizes = layerSizes;
+      this.numInputs = layerSizes[0];
       layers = new ArrayList<Neuron[]>();
 
       // Create each layer
@@ -42,6 +48,25 @@ public class Network {
     */
    private Network(ArrayList<Neuron[]> layers) {
       this.layers = layers;
+   }
+
+   /**
+    * Resets the network.
+    */
+   public void reset() {
+      layers = new ArrayList<Neuron[]>();
+
+      // Create each layer
+      for (int i = 1; i < layerSizes.length; ++i) {
+         Neuron[] layer = new Neuron[layerSizes[i]];
+
+         // Initialize neurons using previous layer size.
+         for (int j = 0; j < layer.length; ++j) {
+            layer[j] = new Neuron(layerSizes[i-1]);
+         }
+
+         layers.add(layer);
+      }
    }
 
    /**
