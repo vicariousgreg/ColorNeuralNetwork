@@ -6,9 +6,9 @@ import java.util.Scanner;
 
 public class Main {
    /** The number of standard tests generated in a suite. */
-   private static final int kNumTests = 5000;
+   private static final int kNumTests = 25;
    /** The number of fringe tests generated in a suite. */
-   private static final int kNumFringeTests = 100;
+   private static final int kNumFringeTests = 5;
    /** The offset for fringe tests. */
    private static final double kFringeFactor = 0.01;
 
@@ -19,12 +19,12 @@ public class Main {
     * The error threshold for network regression.
     * If the network's error increases by this much, it is reset.
     */
-   private static final int kErrorRegressionThreshold = 25;
+   private static final int kErrorRegressionThreshold = 100;
 
    /** Acceptable test error for learning termination. */
-   private static final double kAcceptableTestError = 2;
+   private static final double kAcceptableTestError = 5;
    /** Acceptable percentage correct for learning termination. */
-   private static final double kAcceptablePercentCorrect = 99.9;
+   private static final double kAcceptablePercentCorrect = 95;
 
    /**
     * Main driver.
@@ -123,31 +123,55 @@ public class Main {
       // Loop is broken when "quit" is entered.
       while (true) {
          System.out.println();
-         System.out.println("Enter x and y (or quit): ");
+         System.out.println("Enter x and y (or quit, random, fringe): ");
          String line = in.nextLine();
 
          if (line.contains("quit")) break;
 
-         try {
-            String[] tokens = line.trim().split("\\s+");
-            double x = Double.parseDouble(tokens[0]);
-            double y = Double.parseDouble(tokens[1]);
-            boolean answer = Double.compare(x,y) < 0;
-            double guessValue = 
-               network.fire(new double[] {x, y})[0];
-            boolean guess = Double.compare(guessValue, 0.5) > 0;
+         double x = 0.0;
+         double y = 0.0;
 
-            // Check network's guess.
-            if (guess == answer) {
-               System.out.println("Successful guess!");
-            } else {
-               System.out.println("Unsuccessful guess!");
-               System.out.println("  Got: " + guessValue);
-               System.out.println("  Expected: " + (answer ? "1.0" : 0.0));
+         Random rand = new Random();
+         if (line.contains("random")) {
+            x = rand.nextDouble();
+            y = rand.nextDouble();
+            System.out.printf("Random x and y: %.6f %.6f\n", x, y);
+         } else if (line.contains("fringe")){
+            try {
+               x = rand.nextDouble();
+
+               System.out.printf("Enter fringe offset: ");
+               double fringe = Double.parseDouble(in.nextLine());
+
+               y = (rand.nextDouble() > 0.5) ? x + fringe : x - fringe;
+               System.out.printf("Random x and y: %.6f %.6f\n", x, y);
+            } catch (Exception e) {
+               System.out.println("Invalid input!");
+               continue;
             }
+         } else {
+            try {
+               String[] tokens = line.trim().split("\\s+");
+               x = Double.parseDouble(tokens[0]);
+               y = Double.parseDouble(tokens[1]);
+            } catch (Exception e) {
+               System.out.println("Invalid input!");
+               continue;
+            }
+         }
 
-         } catch (Exception e) {
-            System.out.println("Invalid input!");
+         boolean answer = Double.compare(x,y) < 0;
+         double guessValue = 
+            network.fire(new double[] {x, y})[0];
+         boolean guess = Double.compare(guessValue, 0.5) > 0;
+
+         // Check network's guess.
+         if (guess == answer) {
+            System.out.println("Successful guess!");
+         } else {
+            System.out.println("Unsuccessful guess!");
+            System.out.println("  Got: " + guessValue);
+            System.out.println("  Expected: " + (answer ? "1.0" : 0.0));
          }
       }
    }
